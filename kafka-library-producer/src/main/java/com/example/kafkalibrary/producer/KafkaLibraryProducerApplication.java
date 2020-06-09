@@ -1,4 +1,4 @@
-package com.example.kafkalibraryproducer;
+package com.example.kafkalibrary.producer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

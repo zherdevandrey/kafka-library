@@ -1,6 +1,6 @@
 package com.unit;
 
-import com.example.kafkalibrary.producer.KafkaLibraryConsumerApplication;
+import com.example.kafkalibrary.producer.KafkaLibraryProducerApplication;
 import com.example.kafkalibrary.producer.controller.LibraryEventController;
 import com.example.kafkalibrary.producer.domain.Book;
 import com.example.kafkalibrary.producer.domain.LibraryEvent;
@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @WebMvcTest(LibraryEventController.class)
-@ContextConfiguration(classes = KafkaLibraryConsumerApplication.class)
+@ContextConfiguration(classes = KafkaLibraryProducerApplication.class)
 class LibraryEventControllerTest {
 
     @Autowired

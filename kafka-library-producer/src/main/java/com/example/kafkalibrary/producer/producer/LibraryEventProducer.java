@@ -33,7 +33,7 @@ public class LibraryEventProducer {
         int key = libraryEvent.getLibraryEventId();
         Book book = libraryEvent.getBook();
 
-        ListenableFuture<SendResult<Integer, String>> listenableFuture = kafkaTemplate.sendDefault(key, objectMapper.writeValueAsString(book));
+        ListenableFuture<SendResult<Integer, String>> listenableFuture = kafkaTemplate.sendDefault(key, objectMapper.writeValueAsString(libraryEvent));
         listenableFuture.addCallback(new ListenableFutureCallback<SendResult<Integer, String>>() {
             @Override
             public void onFailure(Throwable throwable) {
