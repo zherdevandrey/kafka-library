@@ -1,6 +1,7 @@
 package com.example.consumer;
 
 import com.example.service.LibraryEventsService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -15,7 +16,7 @@ public class KafkaLibraryConsumer {
     private LibraryEventsService service;
 
     @KafkaListener(topics = "library-events")
-    public void onMessage(ConsumerRecord consumerRecord){
+    public void onMessage(ConsumerRecord consumerRecord) throws JsonProcessingException {
         service.processLibraryEvent(consumerRecord);
     }
 

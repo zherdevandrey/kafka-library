@@ -2,14 +2,17 @@ package com.example.service;
 
 import com.example.domain.LibraryEvent;
 import com.example.jpa.LibraryEventRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.RecoverableDataAccessException;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.util.Optional;
 
@@ -20,10 +23,15 @@ public class LibraryEventsService {
 
     private ObjectMapper mapper;
     private LibraryEventRepository repository;
+    private KafkaTemplate<Integer, String> kafkaTemplate;
 
-    @SneakyThrows
-    public void processLibraryEvent(ConsumerRecord<Integer, String> consumerRecord){
+    public void processLibraryEvent(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
         LibraryEvent libraryEvent = mapper.readValue(consumerRecord.value(), LibraryEvent.class);
+
+        if (libraryEvent.getLibraryEventId() == 111 ){
+            throw new RecoverableDataAccessException("temporary network issue");
+        }
+
         switch (libraryEvent.getLibraryEventType()){
             case NEW:
                 repository.save(libraryEvent);
@@ -53,5 +61,25 @@ public class LibraryEventsService {
     private void save(LibraryEvent libraryEvent) {
         libraryEvent.getBook().setLibraryEvent(libraryEvent);
         repository.save(libraryEvent);
+    }
+
+    public void handleRecovery(ConsumerRecord<Integer, String> record){
+
+        Integer key = record.key();
+        String msg = record.value();
+
+        ListenableFuture<SendResult<Integer, String>> listenableFuture = kafkaTemplate.sendDefault(key, msg);
+        listenableFuture.addCallback(new ListenableFutureCallback<SendResult<Integer, String>>() {
+            @Override
+            public void onFailure(Throwable throwable) {
+                log.info("message send with error for key {} with calue {} for partition {}",key, msg, throwable.getMessage());
+            }
+
+            @Override
+            public void onSuccess(SendResult<Integer, String> result) {
+                log.info("message send successfully for key {} with calue {} for partition {}",key, msg, result.getRecordMetadata().partition());
+            }
+        });
+
     }
 }
